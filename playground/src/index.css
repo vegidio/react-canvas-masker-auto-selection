@@ -46,7 +46,8 @@ body {
   background: #1a1a1a;
 }
 
-.editor > * {
+.editor-stack {
+  position: relative;
   width: 100%;
   aspect-ratio: 3 / 2;
 }
@@ -56,6 +57,20 @@ body {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.mode-indicator {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+.mode-indicator[data-mode="auto"] strong {
+  color: #6ee7b7;
+}
+
+.mode-indicator[data-mode="paint"] strong {
+  color: #93c5fd;
 }
 
 .controls button {
