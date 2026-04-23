@@ -1,5 +1,5 @@
 import type { CSSProperties, JSX, MouseEvent } from 'react';
-import type { AutoSelectionOverlayDriverProps, ImagePoint } from '../types';
+import type { AutoSelectionOverlayDriverProps } from '../types';
 
 export interface AutoSelectionOverlayProps extends AutoSelectionOverlayDriverProps {
   className?: string;
@@ -11,9 +11,9 @@ export interface AutoSelectionOverlayProps extends AutoSelectionOverlayDriverPro
  *
  * When `active` is false, the overlay is fully click-through (`pointer-events:
  * none`), so the editor receives mouse events normally and paint mode works
- * unchanged. When `active` is true, the overlay captures clicks, computes the
- * picked point, and forwards it via `onPick` so the hook can run auto
- * detection.
+ * unchanged. When `active` is true, the overlay captures clicks and forwards
+ * the viewport client coordinates to the hook, which maps them to image-pixel
+ * space against the `MaskEditor`'s current transform.
  *
  * Place the overlay inside a positioned ancestor that matches the
  * `MaskEditor`'s rendered area so the click coordinates line up with the image.
@@ -27,15 +27,7 @@ export function AutoSelectionOverlay({
 }: AutoSelectionOverlayProps): JSX.Element {
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {
     if (!active || isDetecting) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    // TODO: when the AI backend lands, map this overlay-local point to image
-    // pixel coordinates using the MaskEditor's current zoom/pan transform so
-    // the detection runs in the correct coordinate space.
-    const point: ImagePoint = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    };
-    onPick(point);
+    onPick({ clientX: event.clientX, clientY: event.clientY });
   };
 
   return (

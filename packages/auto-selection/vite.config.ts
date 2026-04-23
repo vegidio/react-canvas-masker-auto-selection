@@ -21,13 +21,20 @@ export default defineConfig({
       fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', 'react-canvas-masker'],
+      external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'react-canvas-masker',
+        'onnxruntime-web',
+      ],
       output: {
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': 'jsxRuntime',
           'react-canvas-masker': 'ReactCanvasMasker',
+          'onnxruntime-web': 'ort',
         },
       },
     },

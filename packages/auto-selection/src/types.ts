@@ -25,12 +25,18 @@ export interface ImagePoint {
   y: number;
 }
 
+/** A point in viewport client coordinates (matches `MouseEvent.clientX/Y`). */
+export interface ClientPoint {
+  clientX: number;
+  clientY: number;
+}
+
 /**
  * A single object detected in the source image.
  *
- * `mask` is the binary alpha mask covering the object. When present, non-zero
- * pixels mark the object's silhouette — typically sized to either `bbox` or
- * the full image, depending on the backend.
+ * `mask` is an alpha-only mask covering the object, sized to the full image.
+ * Non-zero alpha marks the object's silhouette; `applyMaskToCanvas` tints it
+ * with the caller's color/opacity before compositing onto the mask canvas.
  */
 export interface DetectedObject {
   id: string;
@@ -38,6 +44,33 @@ export interface DetectedObject {
   score: number;
   bbox: BoundingBox;
   mask?: ImageData;
+}
+
+/** Styling applied when compositing a detected mask onto the MaskEditor canvas. */
+export interface MaskStyle {
+  /** Fill color (CSS color string). Defaults to `'#23272d'` — MaskEditor's default. */
+  color?: string;
+  /** Alpha multiplier for the final draw (0-1). Defaults to `0.75`. */
+  opacity?: number;
+  /** Canvas compositing operation for the final draw. Defaults to `'source-over'`. */
+  blendMode?: GlobalCompositeOperation;
+}
+
+/** Configuration for the bundled SAM (SlimSAM-77) backend. */
+export interface SamConfig {
+  /** URL of the quantized vision encoder ONNX file. */
+  encoderUrl: string;
+  /** URL of the quantized combined prompt_encoder + mask_decoder ONNX file. */
+  decoderUrl: string;
+  /** Optional override for `ort.env.wasm.wasmPaths`. Set only if provided. */
+  wasmPaths?: string;
+  /**
+   * ONNX Runtime execution providers, in preference order. Defaults to
+   * `['wasm']` because `onnxruntime-web@1.24`'s WebGPU EP produces corrupt
+   * output for the INT8-quantized SlimSAM-77 export (some ops fall back to
+   * CPU and the EP boundary mangles quantized activations).
+   */
+  executionProviders?: ('webgpu' | 'wasm')[];
 }
 
 /** Options accepted by {@link useAutoSelection}. */
@@ -54,20 +87,34 @@ export interface AutoSelectionOptions {
   onObjectDetected?: (object: DetectedObject) => void;
   /** Called whenever a detection attempt fails. */
   onError?: (error: Error) => void;
+  /**
+   * SAM backend config. When present, clicks in auto mode run SlimSAM-77 via
+   * `onnxruntime-web`. When omitted, `detectAt` throws "not implemented".
+   */
+  sam?: SamConfig;
+  /** Color/opacity/blend used when compositing detected masks. */
+  maskStyle?: MaskStyle;
 }
 
 /**
  * Props produced by {@link useAutoSelection} for spreading onto
  * {@link AutoSelectionOverlay}.
+ *
+ * `onPick` receives client coordinates (matching `MouseEvent.clientX/clientY`);
+ * the hook maps them to image-pixel coordinates using the mask canvas's
+ * bounding rect so CSS zoom/pan and `devicePixelRatio` are handled correctly.
  */
 export interface AutoSelectionOverlayDriverProps {
   /** When true, the overlay captures mouse events to drive auto-detection. */
   active: boolean;
   /** True while a detection request is in flight. */
   isDetecting: boolean;
-  /** Called with the click position (in overlay-local pixels). */
-  onPick: (point: ImagePoint) => void;
+  /** Called with the click position in viewport client coordinates. */
+  onPick: (point: ClientPoint) => void;
 }
+
+/** Lifecycle state of the auto-selection backend. */
+export type AutoSelectionStatus = 'idle' | 'loading' | 'encoding' | 'ready' | 'detecting' | 'error';
 
 /** Return value of {@link useAutoSelection}. */
 export interface AutoSelectionResult {
@@ -79,6 +126,8 @@ export interface AutoSelectionResult {
   toggleMode: () => void;
   /** True while an auto-detection request is in flight. */
   isDetecting: boolean;
+  /** Coarser lifecycle state covering model load, encoding, and detection. */
+  status: AutoSelectionStatus;
   /** The most recently detected object, or `null` before the first run. */
   lastDetected: DetectedObject | null;
   /** The most recent error, if any. */
@@ -92,4 +141,10 @@ export interface AutoSelectionResult {
   detectAt: (point: ImagePoint) => Promise<DetectedObject | null>;
   /** Props to spread onto {@link AutoSelectionOverlay}. */
   overlayProps: AutoSelectionOverlayDriverProps;
+  /**
+   * Drops the cached encoder embedding, forcing the next `detectAt` call to
+   * re-encode the current source. Only needed if consumers mutate an
+   * `HTMLCanvasElement` source in place.
+   */
+  invalidateEmbedding: () => void;
 }

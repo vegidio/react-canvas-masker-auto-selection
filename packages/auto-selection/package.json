@@ -47,9 +47,15 @@
     "clean": "rm -rf dist"
   },
   "peerDependencies": {
+    "onnxruntime-web": "^1.24.3",
     "react": ">=18.0.0 <20.0.0",
-    "react-dom": ">=18.0.0 <20.0.0",
-    "react-canvas-masker": "^1.2.0"
+    "react-canvas-masker": "^1.2.0",
+    "react-dom": ">=18.0.0 <20.0.0"
+  },
+  "peerDependenciesMeta": {
+    "onnxruntime-web": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -58,6 +64,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "happy-dom": "^20.9.0",
+    "onnxruntime-web": "^1.24.3",
     "react": "^19.2.5",
     "react-canvas-masker": "^1.2.0",
     "react-dom": "^19.2.5",

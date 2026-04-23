@@ -2,4 +2,5 @@ packages:
   - "packages/*"
   - "playground"
 allowBuilds:
+  protobufjs: true
   simple-git-hooks: true

@@ -1,8 +1,10 @@
 # react-canvas-masker-auto-selection
 
-A plugin for [`react-canvas-masker`](https://github.com/3rChuss/react-canvas-masker) that adds **automatic object detection and mask generation**. Drop in the hook, point it at your image, and let it produce masks that the existing `MaskEditor` can render and edit.
+A plugin for [`react-canvas-masker`](https://github.com/3rChuss/react-canvas-masker) that adds **automatic object detection and mask generation**. Toggle between freehand `paint` mode and a click-to-mask `auto` mode where each click runs [SlimSAM-77](https://huggingface.co/Xenova/slimsam-77-uniform) — a quantized distillation of Segment Anything — locally in the browser via [`onnxruntime-web`](https://onnxruntime.ai/docs/tutorials/web/). The detected object's mask is written into the `MaskEditor`'s canvas.
 
-> **Status:** scaffolding only. The public API is wired up but the ML/CV detection backend is not yet implemented — `useAutoSelection().detect()` currently throws.
+- ~14 MB of quantized ONNX weights (encoder + decoder), downloaded once and persisted via the browser `Cache` API.
+- WebGPU-first with automatic WASM fallback.
+- Zero server: all inference runs on the user's device.
 
 ## Repo layout
 
@@ -46,18 +48,21 @@ pnpm changeset    # record a release note for the next version
 - pnpm 10 workspaces
 - GitHub Actions for CI
 
-## Library API (current stubs)
+## Library API
 
 ```ts
 import {
   useAutoSelection,
   AutoSelectionOverlay,
   applyMaskToCanvas,
+  clientToImagePoint,
+  clearSamCache,
   type DetectedObject,
+  type SamConfig,
 } from 'react-canvas-masker-auto-selection';
 ```
 
-See [`packages/auto-selection/README.md`](packages/auto-selection/README.md) for usage details.
+`onnxruntime-web@^1.24.3` is an **optional peer dependency** — only install it if you use the bundled SAM backend. See [`packages/auto-selection/README.md`](packages/auto-selection/README.md) for full usage details, including the `wasmPaths` self-hosting recipe and the persistent model cache behavior.
 
 ## License
 

@@ -1,24 +1,56 @@
-import { type RefObject, useRef } from 'react';
+import { type RefObject, useMemo, useRef } from 'react';
 import { MaskEditor, type MaskEditorCanvasRef } from 'react-canvas-masker';
-import { AutoSelectionOverlay, useAutoSelection } from 'react-canvas-masker-auto-selection';
+import {
+  AutoSelectionOverlay,
+  type SamConfig,
+  useAutoSelection,
+} from 'react-canvas-masker-auto-selection';
 
 const SAMPLE_IMAGE =
   'https://images.unsplash.com/photo-1724745523440-e9a3982d8994?q=80&w=2367&auto=format&fit=crop&w=900&q=80';
 
+const DEFAULT_ENCODER_URL =
+  'https://huggingface.co/Xenova/slimsam-77-uniform/resolve/main/onnx/vision_encoder_quantized.onnx';
+const DEFAULT_DECODER_URL =
+  'https://huggingface.co/Xenova/slimsam-77-uniform/resolve/main/onnx/prompt_encoder_mask_decoder_quantized.onnx';
+
 export function App() {
   const canvasRef = useRef<MaskEditorCanvasRef>(null);
+
+  const samConfig = useMemo<SamConfig>(
+    () => ({
+      encoderUrl: import.meta.env.VITE_SAM_ENCODER_URL ?? DEFAULT_ENCODER_URL,
+      decoderUrl: import.meta.env.VITE_SAM_DECODER_URL ?? DEFAULT_DECODER_URL,
+      wasmPaths: '/ort/',
+    }),
+    [],
+  );
+
   const auto = useAutoSelection({
     canvasRef,
     source: SAMPLE_IMAGE,
+    sam: samConfig,
   });
 
-  const status = auto.isDetecting
-    ? 'Detecting…'
-    : auto.error
-      ? auto.error.message
-      : auto.mode === 'auto'
-        ? 'Auto-select mode: click an object in the image to mask it.'
-        : 'Paint mode: drag on the image to paint a mask.';
+  const status = (() => {
+    if (auto.error) return `Error: ${auto.error.message}`;
+    switch (auto.status) {
+      case 'loading':
+        return 'Loading SAM model (~14 MB first time, then cached)…';
+      case 'encoding':
+        return 'Encoding image…';
+      case 'detecting':
+        return 'Detecting object…';
+      case 'ready':
+        return auto.mode === 'auto'
+          ? 'Auto-select mode: click an object in the image to mask it.'
+          : 'Paint mode: drag on the image to paint a mask.';
+      default:
+        return auto.mode === 'auto'
+          ? 'Auto-select mode: preparing…'
+          : 'Paint mode: drag on the image to paint a mask.';
+    }
+  })();
 
   return (
     <main className="playground">
@@ -26,9 +58,9 @@ export function App() {
         <h1>react-canvas-masker-auto-selection · playground</h1>
         <p>
           <code>react-canvas-masker</code> handles freehand mask painting. This plugin adds a second
-          mode where clicks on the image are intercepted and routed to an AI backend that
-          auto-detects and masks the clicked object. The detection backend is stubbed — clicking in
-          auto mode surfaces a "not implemented" error.
+          mode where clicks on the image are sent to SlimSAM-77 running locally in the browser via{' '}
+          <code>onnxruntime-web</code>. First load downloads ~14 MB of quantized ONNX weights and
+          caches them; subsequent loads are instant.
         </p>
       </header>
 
@@ -51,6 +83,9 @@ export function App() {
         </button>
         <span className="mode-indicator" data-mode={auto.mode}>
           Current mode: <strong>{auto.mode}</strong>
+        </span>
+        <span className="status-indicator" data-status={auto.status}>
+          Status: <strong>{auto.status}</strong>
         </span>
         <p className="status" role="status">
           {status}
