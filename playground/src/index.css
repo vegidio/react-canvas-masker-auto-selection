@@ -1,0 +1,88 @@
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light dark;
+  background: #111;
+  color: #f5f5f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.playground {
+  max-width: 960px;
+  width: 100%;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.playground header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.playground header p {
+  margin: 0;
+  opacity: 0.75;
+  line-height: 1.5;
+}
+
+.editor {
+  align-self: center;
+  width: 100%;
+  max-width: 932px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #1a1a1a;
+}
+
+.editor > * {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.controls button {
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.controls .status {
+  margin: 0;
+  opacity: 0.8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+}
+
+code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.85em;
+}

@@ -1,0 +1,39 @@
+{
+  "name": "react-canvas-masker-auto-selection-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo root for react-canvas-masker-auto-selection: a plugin that adds automatic object-mask detection to react-canvas-masker.",
+  "type": "module",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter playground dev",
+    "build": "pnpm --filter react-canvas-masker-auto-selection build",
+    "build:all": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:watch": "pnpm --filter react-canvas-masker-auto-selection test:watch",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check . && pnpm typecheck && pnpm test",
+    "fix": "biome check --write .",
+    "changeset": "changeset",
+    "release": "pnpm build && changeset publish",
+    "prepare": "simple-git-hooks"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
+    "@changesets/cli": "^2.31.0",
+    "lint-staged": "^16.4.0",
+    "simple-git-hooks": "^2.13.1",
+    "typescript": "^6.0.3"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,md}": "biome check --write --no-errors-on-unmatched"
+  }
+}
