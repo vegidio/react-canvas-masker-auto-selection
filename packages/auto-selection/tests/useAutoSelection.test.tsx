@@ -109,7 +109,7 @@ describe('useAutoSelection — with mocked SAM backend', () => {
     await waitFor(() => expect(mockEngine.prepare).toHaveBeenCalledTimes(1));
   });
 
-  it('transitions status through loading → encoding → ready', async () => {
+  it('transitions status through loading → ready', async () => {
     const { ref } = makeCanvasRef();
     const { result } = renderHook(() =>
       useAutoSelection({

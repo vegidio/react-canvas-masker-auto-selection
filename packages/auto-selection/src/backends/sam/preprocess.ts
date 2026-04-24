@@ -84,6 +84,7 @@ function createCanvas(width: number, height: number): HTMLCanvasElement | Offscr
 
 /**
  * Map an image-space point to the 1024-padded input space SAM's decoder expects.
+ *
  * Returns `[x, y]` in pixels within the 1024×1024 input tensor frame.
  */
 export function imagePointToInputSpace(

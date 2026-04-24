@@ -97,7 +97,6 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
       try {
         const engine = await ensureEngine();
         if (!engine || controller.signal.aborted) return;
-        setStatus('encoding');
         await engine.prepare(source, controller.signal);
         if (controller.signal.aborted) return;
         setStatus('ready');

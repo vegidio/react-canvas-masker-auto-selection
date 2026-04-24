@@ -142,7 +142,7 @@ interface SamConfig {
 
 ### `status` lifecycle
 
-`idle` → `loading` (downloading ONNX files + initializing sessions) → `encoding` (running the vision encoder on the current source, cached afterwards) → `ready` → `detecting` (per click) → `ready` | `error`.
+`idle` → `loading` (downloading ONNX files, initializing sessions, and running the vision encoder on the current source; the embedding is cached afterwards) → `ready` → `detecting` (per click) → `ready` | `error`.
 
 ## License
 

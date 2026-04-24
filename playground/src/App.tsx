@@ -62,8 +62,6 @@ export function App() {
     switch (auto.status) {
       case 'loading':
         return 'Loading SAM model (~14 MB first time, then cached)…';
-      case 'encoding':
-        return 'Encoding image…';
       case 'detecting':
         return 'Detecting object…';
       case 'ready':

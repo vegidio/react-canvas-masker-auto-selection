@@ -123,7 +123,7 @@ export interface AutoSelectionOverlayDriverProps {
 }
 
 /** Lifecycle state of the auto-selection backend. */
-export type AutoSelectionStatus = 'idle' | 'loading' | 'encoding' | 'ready' | 'detecting' | 'error';
+export type AutoSelectionStatus = 'idle' | 'loading' | 'ready' | 'detecting' | 'error';
 
 /** Return value of {@link useAutoSelection}. */
 export interface AutoSelectionResult {
@@ -135,7 +135,7 @@ export interface AutoSelectionResult {
   toggleMode: () => void;
   /** True while an auto-detection request is in flight. */
   isDetecting: boolean;
-  /** Coarser lifecycle state covering model load, encoding, and detection. */
+  /** Coarser lifecycle state covering model load and detection. */
   status: AutoSelectionStatus;
   /** The most recently detected object, or `null` before the first run. */
   lastDetected: DetectedObject | null;
