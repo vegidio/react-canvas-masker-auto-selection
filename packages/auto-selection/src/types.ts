@@ -48,9 +48,18 @@ export interface DetectedObject {
 
 /** Styling applied when compositing a detected mask onto the MaskEditor canvas. */
 export interface MaskStyle {
-  /** Fill color (CSS color string). Defaults to `'#23272d'` — MaskEditor's default. */
+  /**
+   * Fill color (CSS color string). Defaults to `'#ffffff'`, matching
+   * `react-canvas-masker`'s default `maskColor` so auto-detected masks are
+   * visually indistinguishable from manual paint. If you override `maskColor`
+   * on `<MaskEditor>`, pass a matching `color` here.
+   */
   color?: string;
-  /** Alpha multiplier for the final draw (0-1). Defaults to `0.75`. */
+  /**
+   * Alpha multiplier for the final draw (0-1). Defaults to `1`. The
+   * render-time mask dimming is controlled by `react-canvas-masker`'s
+   * `maskOpacity` CSS, which applies uniformly to all pixels on the canvas.
+   */
   opacity?: number;
   /** Canvas compositing operation for the final draw. Defaults to `'source-over'`. */
   blendMode?: GlobalCompositeOperation;

@@ -1,10 +1,13 @@
-import { type RefObject, useMemo, useRef } from 'react';
+import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react';
 import { MaskEditor, type MaskEditorCanvasRef } from 'react-canvas-masker';
 import {
   AutoSelectionOverlay,
   type SamConfig,
   useAutoSelection,
 } from 'react-canvas-masker-auto-selection';
+
+const PREVIEW_WIDTH = 160;
+const PREVIEW_HEIGHT = 107;
 
 const SAMPLE_IMAGE =
   'https://images.unsplash.com/photo-1724745523440-e9a3982d8994?q=80&w=2367&auto=format&fit=crop&w=900&q=80';
@@ -16,6 +19,7 @@ const DEFAULT_DECODER_URL =
 
 export function App() {
   const canvasRef = useRef<MaskEditorCanvasRef>(null);
+  const previewRef = useRef<HTMLCanvasElement>(null);
 
   const samConfig = useMemo<SamConfig>(
     () => ({
@@ -26,11 +30,32 @@ export function App() {
     [],
   );
 
+  const redrawPreview = useCallback(() => {
+    const maskCanvas = canvasRef.current?.maskCanvas;
+    const preview = previewRef.current;
+    if (!maskCanvas || !preview) return;
+    const ctx = preview.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, preview.width, preview.height);
+    ctx.drawImage(maskCanvas, 0, 0, preview.width, preview.height);
+  }, []);
+
   const auto = useAutoSelection({
     canvasRef,
     source: SAMPLE_IMAGE,
     sam: samConfig,
+    onObjectDetected: () => queueMicrotask(redrawPreview),
   });
+
+  useEffect(() => {
+    const preview = previewRef.current;
+    if (!preview) return;
+    const ctx = preview.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, preview.width, preview.height);
+  }, []);
 
   const status = (() => {
     if (auto.error) return `Error: ${auto.error.message}`;
@@ -70,6 +95,7 @@ export function App() {
             src={SAMPLE_IMAGE}
             canvasRef={canvasRef as RefObject<MaskEditorCanvasRef>}
             onDrawingChange={() => {}}
+            onMaskChange={redrawPreview}
             maxWidth={900}
             maxHeight={600}
           />
@@ -91,6 +117,14 @@ export function App() {
           {status}
         </p>
       </section>
+
+      <canvas
+        ref={previewRef}
+        className="mask-preview"
+        width={PREVIEW_WIDTH}
+        height={PREVIEW_HEIGHT}
+        aria-label="Mask preview"
+      />
     </main>
   );
 }

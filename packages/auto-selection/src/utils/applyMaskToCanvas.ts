@@ -1,7 +1,7 @@
 import type { DetectedObject, MaskStyle } from '../types';
 
-const DEFAULT_COLOR = '#23272d';
-const DEFAULT_OPACITY = 0.75;
+const DEFAULT_COLOR = '#ffffff';
+const DEFAULT_OPACITY = 1;
 const DEFAULT_BLEND: GlobalCompositeOperation = 'source-over';
 
 /**

@@ -53,8 +53,8 @@ describe('applyMaskToCanvas', () => {
   it('honors the default color and opacity when no style is passed', () => {
     const { canvas, ctx } = makeCanvasWithSpy();
     applyMaskToCanvas(canvas, makeObject());
-    expect(ctx.fillStyle).toBe('#23272d');
-    expect(ctx.globalAlpha).toBeCloseTo(0.75);
+    expect(ctx.fillStyle).toBe('#ffffff');
+    expect(ctx.globalAlpha).toBeCloseTo(1);
     expect(ctx.globalCompositeOperation).toBe('source-over');
   });
 

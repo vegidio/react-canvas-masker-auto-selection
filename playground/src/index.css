@@ -101,3 +101,17 @@ code {
   background: rgba(255, 255, 255, 0.08);
   font-size: 0.85em;
 }
+
+.mask-preview {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  width: 160px;
+  height: 107px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 10;
+}

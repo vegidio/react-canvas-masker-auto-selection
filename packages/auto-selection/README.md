@@ -113,6 +113,20 @@ export function copyOnnxRuntimeAssets(): Plugin {
 - `clearSamCache()` — drop the persistent ONNX weight cache.
 - Types: `AutoSelectionMode`, `AutoSelectionOptions`, `AutoSelectionResult`, `AutoSelectionStatus`, `AutoSelectionOverlayDriverProps`, `DetectedObject`, `BoundingBox`, `ImagePoint`, `ClientPoint`, `MaskStyle`, `SamConfig`.
 
+### `maskStyle` — keeping auto masks visually identical to manual paint
+
+The plugin writes detected masks directly to `react-canvas-masker`'s `maskCanvas` (the parent library doesn't expose a paint-for-me API, so there is no other way). By default the plugin writes pixels the same way manual paint does: `color: '#ffffff'`, `opacity: 1` — matching `react-canvas-masker`'s default `maskColor`. With defaults on both sides, a manually painted stroke and an auto-detected silhouette are pixel-identical on the canvas and render identically under the parent library's `maskOpacity` / `maskBlendMode` CSS.
+
+If you override `maskColor` on `<MaskEditor>`, pass a matching `maskStyle.color` to `useAutoSelection`:
+
+```tsx
+<MaskEditor src={src} canvasRef={canvasRef} maskColor="red" onDrawingChange={() => {}} />
+// then…
+useAutoSelection({ canvasRef, source: src, sam: SAM, maskStyle: { color: 'red' } });
+```
+
+`maskOpacity` and `maskBlendMode` are applied as CSS to the whole mask canvas by `react-canvas-masker` and cover both paint paths automatically — no forwarding needed.
+
 ### `sam` config
 
 ```ts
