@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build library
+        run: pnpm --filter react-canvas-masker-auto-selection build
+
       - name: Verify (Biome + typecheck + tests)
         run: pnpm check
 
