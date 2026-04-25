@@ -25,7 +25,6 @@ export function App() {
     () => ({
       encoderUrl: import.meta.env.VITE_SAM_ENCODER_URL ?? DEFAULT_ENCODER_URL,
       decoderUrl: import.meta.env.VITE_SAM_DECODER_URL ?? DEFAULT_DECODER_URL,
-      wasmPaths: '/ort/',
     }),
     [],
   );

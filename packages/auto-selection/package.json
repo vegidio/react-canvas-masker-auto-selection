@@ -12,11 +12,11 @@
     "react-canvas-masker",
     "plugin"
   ],
-  "license": "MIT",
-  "author": "",
+  "license": "Apache-2.0",
+  "author": "Vinicius Egidio <vegidio@gmail.com> (https://vinicius.io)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/react-canvas-masker-auto-selection.git",
+    "url": "https://github.com/vegidio/react-canvas-masker-auto-selection.git",
     "directory": "packages/auto-selection"
   },
   "type": "module",
@@ -33,7 +33,6 @@
   },
   "files": [
     "dist",
-    "README.md",
     "LICENSE"
   ],
   "sideEffects": false,
