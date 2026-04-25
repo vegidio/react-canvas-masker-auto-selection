@@ -17,10 +17,10 @@ vi.mock('../src/backends/sam', () => ({
     clearSamCache: vi.fn(),
 }));
 
-function makeCanvasRef(): {
+const makeCanvasRef = (): {
     ref: RefObject<MaskEditorCanvasRef | null>;
     canvas: HTMLCanvasElement;
-} {
+} => {
     const canvas = document.createElement('canvas');
     canvas.width = 200;
     canvas.height = 100;
@@ -50,7 +50,7 @@ function makeCanvasRef(): {
     const ref = createRef<MaskEditorCanvasRef>() as RefObject<MaskEditorCanvasRef | null>;
     (ref as { current: MaskEditorCanvasRef | null }).current = maskRef;
     return { ref, canvas };
-}
+};
 
 const SAM_CONFIG: SamConfig = {
     encoderUrl: 'https://example.test/encoder.onnx',

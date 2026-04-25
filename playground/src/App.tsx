@@ -17,7 +17,7 @@ const DEFAULT_ENCODER_URL =
 const DEFAULT_DECODER_URL =
     'https://huggingface.co/Xenova/slimsam-77-uniform/resolve/main/onnx/prompt_encoder_mask_decoder_quantized.onnx';
 
-export function App() {
+export const App = () => {
     const canvasRef = useRef<MaskEditorCanvasRef>(null);
     const previewRef = useRef<HTMLCanvasElement>(null);
 
@@ -33,8 +33,10 @@ export function App() {
         const maskCanvas = canvasRef.current?.maskCanvas;
         const preview = previewRef.current;
         if (!maskCanvas || !preview) return;
+
         const ctx = preview.getContext('2d');
         if (!ctx) return;
+
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, preview.width, preview.height);
         ctx.drawImage(maskCanvas, 0, 0, preview.width, preview.height);
@@ -50,8 +52,10 @@ export function App() {
     useEffect(() => {
         const preview = previewRef.current;
         if (!preview) return;
+
         const ctx = preview.getContext('2d');
         if (!ctx) return;
+
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, preview.width, preview.height);
     }, []);
@@ -124,4 +128,4 @@ export function App() {
             />
         </main>
     );
-}
+};

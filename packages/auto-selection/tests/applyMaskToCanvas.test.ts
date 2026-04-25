@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { DetectedObject } from '../src';
 import { applyMaskToCanvas } from '../src';
 
-function makeCtxSpy() {
+const makeCtxSpy = () => {
     return {
         save: vi.fn(),
         restore: vi.fn(),
@@ -15,25 +15,29 @@ function makeCtxSpy() {
         fillStyle: '' as string | CanvasGradient | CanvasPattern,
         imageSmoothingEnabled: true,
     };
-}
+};
 
-function makeCanvasWithSpy(): { canvas: HTMLCanvasElement; ctx: ReturnType<typeof makeCtxSpy> } {
+const makeCanvasWithSpy = (): {
+    canvas: HTMLCanvasElement;
+    ctx: ReturnType<typeof makeCtxSpy>;
+} => {
     const canvas = document.createElement('canvas');
     canvas.width = 16;
     canvas.height = 16;
     const ctx = makeCtxSpy();
     canvas.getContext = vi.fn(() => ctx) as unknown as HTMLCanvasElement['getContext'];
-    return { canvas, ctx };
-}
 
-function makeObject(overrides: Partial<DetectedObject> = {}): DetectedObject {
+    return { canvas, ctx };
+};
+
+const makeObject = (overrides: Partial<DetectedObject> = {}): DetectedObject => {
     return {
         id: 'test-1',
         score: 0.9,
         bbox: { x: 2, y: 2, width: 4, height: 4 },
         ...overrides,
     };
-}
+};
 
 describe('applyMaskToCanvas', () => {
     it('is a safe no-op when the canvas is undefined', () => {
@@ -52,6 +56,7 @@ describe('applyMaskToCanvas', () => {
     it('honors the default color and opacity when no style is passed', () => {
         const { canvas, ctx } = makeCanvasWithSpy();
         applyMaskToCanvas(canvas, makeObject());
+
         expect(ctx.fillStyle).toBe('#ffffff');
         expect(ctx.globalAlpha).toBeCloseTo(1);
         expect(ctx.globalCompositeOperation).toBe('source-over');
@@ -64,6 +69,7 @@ describe('applyMaskToCanvas', () => {
             opacity: 0.5,
             blendMode: 'multiply',
         });
+
         expect(ctx.fillStyle).toBe('#ff0000');
         expect(ctx.globalAlpha).toBeCloseTo(0.5);
         expect(ctx.globalCompositeOperation).toBe('multiply');
@@ -73,6 +79,7 @@ describe('applyMaskToCanvas', () => {
         const { canvas, ctx } = makeCanvasWithSpy();
         const mask = new ImageData(4, 4);
         applyMaskToCanvas(canvas, makeObject({ mask }));
+
         expect(ctx.save).toHaveBeenCalled();
         expect(ctx.fillRect).not.toHaveBeenCalled();
     });

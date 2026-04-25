@@ -1,4 +1,5 @@
 import type { DetectedObject, MaskStyle } from '../types';
+import { createCanvas } from './createCanvas';
 
 const DEFAULT_COLOR = '#ffffff';
 const DEFAULT_OPACITY = 1;
@@ -7,20 +8,17 @@ const DEFAULT_BLEND: GlobalCompositeOperation = 'source-over';
 /**
  * Paints a detected object's mask onto a `react-canvas-masker` mask canvas.
  *
- * If `object.mask` is present, its alpha channel is used as the silhouette,
- * tinted with `style.color` and blended with `style.opacity` /
- * `style.blendMode`. If the mask is absent, `object.bbox` is filled as a
- * rectangle fallback. Existing pixels on the mask canvas are preserved; the
- * new mask unions on top.
+ * If `object.mask` is present, its alpha channel is used as the silhouette, tinted with `style.color` and blended with
+ * `style.opacity` / `style.blendMode`. If the mask is absent, `object.bbox` is filled as a rectangle fallback. Existing
+ * pixels on the mask canvas are preserved; the new mask unions on top.
  *
- * Exported for consumers driving `detectAt` themselves who want to apply the
- * result manually.
+ * Exported for consumers driving `detectAt` themselves who want to apply the result manually.
  */
-export function applyMaskToCanvas(
+export const applyMaskToCanvas = (
     maskCanvas: HTMLCanvasElement | undefined,
     object: DetectedObject,
     style: MaskStyle = {},
-): void {
+): void => {
     if (!maskCanvas) return;
 
     const ctx = maskCanvas.getContext('2d');
@@ -35,13 +33,15 @@ export function applyMaskToCanvas(
     ctx.globalAlpha = opacity;
 
     if (object.mask) {
-        const offscreen = createOffscreen(object.mask.width, object.mask.height);
+        const offscreen = createCanvas(object.mask.width, object.mask.height);
         const offCtx = offscreen.getContext('2d');
+
         if (offCtx) {
             offCtx.putImageData(object.mask, 0, 0);
             offCtx.globalCompositeOperation = 'source-in';
             offCtx.fillStyle = color;
             offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+
             ctx.drawImage(
                 offscreen as CanvasImageSource,
                 0,
@@ -60,14 +60,4 @@ export function applyMaskToCanvas(
     }
 
     ctx.restore();
-}
-
-function createOffscreen(width: number, height: number): HTMLCanvasElement | OffscreenCanvas {
-    if (typeof OffscreenCanvas !== 'undefined') {
-        return new OffscreenCanvas(width, height);
-    }
-    const c = document.createElement('canvas');
-    c.width = width;
-    c.height = height;
-    return c;
-}
+};

@@ -30,14 +30,12 @@ type SamEngineLike = {
 /**
  * Adds an auto-selection mode on top of `react-canvas-masker`'s `MaskEditor`.
  *
- * While `mode === 'paint'`, the parent `MaskEditor` behaves normally — the
- * user paints masks freehand. While `mode === 'auto'`, an
- * {@link AutoSelectionOverlay} (driven by `result.overlayProps`) sits on top
- * of the editor and intercepts clicks; each click is forwarded to the SAM
- * backend (when `options.sam` is configured), which returns the mask of the
- * object under the cursor and writes it to the editor's mask canvas.
+ * While `mode === 'paint'`, the parent `MaskEditor` behaves normally — the user paints masks freehand. While
+ * `mode === 'auto'`, an {@link AutoSelectionOverlay} (driven by `result.overlayProps`) sits on top of the editor and
+ * intercepts clicks; each click is forwarded to the SAM backend (when `options.sam` is configured), which returns the
+ * mask of the object under the cursor and writes it to the editor's mask canvas.
  */
-export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionResult {
+export const useAutoSelection = (options: AutoSelectionOptions): AutoSelectionResult => {
     const {
         canvasRef,
         source,
@@ -60,21 +58,23 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
 
     const samKey = useMemo(() => {
         if (!sam) return undefined;
-        return [
-            sam.encoderUrl,
-            sam.decoderUrl,
-            sam.wasmPaths ?? '',
-            (sam.executionProviders ?? []).join(','),
-        ].join('|');
+        return JSON.stringify({
+            encoderUrl: sam.encoderUrl,
+            decoderUrl: sam.decoderUrl,
+            wasmPaths: sam.wasmPaths ?? null,
+            executionProviders: sam.executionProviders ?? null,
+        });
     }, [sam]);
 
     const ensureEngine = useCallback(async (): Promise<SamEngineLike | undefined> => {
         if (!sam || !samKey) return undefined;
         if (engineRef.current && engineKeyRef.current === samKey) return engineRef.current;
+
         engineRef.current?.dispose();
         const { createSamEngine } = await import('../backends/sam');
         engineRef.current = createSamEngine(sam);
         engineKeyRef.current = samKey;
+
         return engineRef.current;
     }, [sam, samKey]);
 
@@ -89,10 +89,12 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
 
     useEffect(() => {
         if (!sam || !source) return;
+
         const controller = new AbortController();
         activeAbortRef.current?.abort();
         activeAbortRef.current = controller;
         setStatus('loading');
+
         (async () => {
             try {
                 const engine = await ensureEngine();
@@ -108,6 +110,7 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
                 onError?.(e);
             }
         })();
+
         return () => controller.abort();
     }, [sam, source, ensureEngine, onError]);
 
@@ -118,6 +121,7 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
     const detectAt = useCallback(
         async (point: ImagePoint): Promise<DetectedObject | undefined> => {
             setError(undefined);
+
             if (!sam) {
                 const err = new Error(
                     'useAutoSelection.detectAt: no backend configured. Pass a `sam` option or bring your own.',
@@ -126,12 +130,14 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
                 onError?.(err);
                 throw err;
             }
+
             if (!source) {
                 const err = new Error('useAutoSelection.detectAt: `source` is required.');
                 setError(err);
                 onError?.(err);
                 throw err;
             }
+
             const maskCanvas = canvasRef.current?.maskCanvas;
             if (!maskCanvas) {
                 const err = new Error(
@@ -151,6 +157,7 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
             try {
                 const engine = await ensureEngine();
                 if (!engine) throw new Error('SAM engine unavailable.');
+
                 const detected = await engine.detect(
                     source,
                     point,
@@ -158,6 +165,7 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
                     maskCanvas.height,
                     controller.signal,
                 );
+
                 setStatus('ready');
                 return detected;
             } catch (err) {
@@ -177,11 +185,13 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
         async (clientPoint: ClientPoint) => {
             const maskCanvas = canvasRef.current?.maskCanvas;
             if (!maskCanvas) return;
+
             const imagePoint = clientToImagePoint(
                 clientPoint.clientX,
                 clientPoint.clientY,
                 maskCanvas,
             );
+
             if (!imagePoint) return;
 
             try {
@@ -217,4 +227,4 @@ export function useAutoSelection(options: AutoSelectionOptions): AutoSelectionRe
             onPick: handleOverlayPick,
         },
     };
-}
+};

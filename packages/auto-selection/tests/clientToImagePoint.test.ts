@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { clientToImagePoint } from '../src';
 
-function makeCanvas(
+const makeCanvas = (
     width: number,
     height: number,
     rect: { left: number; top: number; width: number; height: number },
-): HTMLCanvasElement {
+): HTMLCanvasElement => {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
+
     canvas.getBoundingClientRect = () => ({
         left: rect.left,
         top: rect.top,
@@ -22,8 +23,9 @@ function makeCanvas(
             return this;
         },
     });
+
     return canvas;
-}
+};
 
 describe('clientToImagePoint', () => {
     it('returns undefined when the canvas has a zero-sized rect', () => {

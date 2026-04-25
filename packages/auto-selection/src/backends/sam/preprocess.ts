@@ -1,3 +1,5 @@
+import { createCanvas } from '../../utils/createCanvas';
+
 const SAM_INPUT_SIZE = 1024;
 const MEAN_R = 123.675;
 const MEAN_G = 116.28;
@@ -17,9 +19,9 @@ export type PreprocessedImage = {
     resizedSize: [number, number];
 };
 
-export async function sourceToEncoderInput(
+export const sourceToEncoderInput = async (
     source: string | HTMLImageElement | HTMLCanvasElement,
-): Promise<PreprocessedImage> {
+): Promise<PreprocessedImage> => {
     const bitmap = await loadAsBitmap(source);
     const origW = bitmap.width;
     const origH = bitmap.height;
@@ -34,15 +36,14 @@ export async function sourceToEncoderInput(
 
     ctx.drawImage(bitmap as unknown as CanvasImageSource, 0, 0, resizedW, resizedH);
     const imageData = ctx.getImageData(0, 0, SAM_INPUT_SIZE, SAM_INPUT_SIZE);
-
     const data = new Float32Array(3 * SAM_INPUT_SIZE * SAM_INPUT_SIZE);
     const pixels = imageData.data;
     const plane = SAM_INPUT_SIZE * SAM_INPUT_SIZE;
-    for (let i = 0; i < plane; i += 1) {
-        const offset = i * 4;
-        data[i] = ((pixels[offset] ?? 0) - MEAN_R) / STD_R;
-        data[plane + i] = ((pixels[offset + 1] ?? 0) - MEAN_G) / STD_G;
-        data[2 * plane + i] = ((pixels[offset + 2] ?? 0) - MEAN_B) / STD_B;
+
+    for (let i = 0, offset = 0; i < plane; i += 1, offset += 4) {
+        data[i] = ((pixels[offset] as number) - MEAN_R) / STD_R;
+        data[plane + i] = ((pixels[offset + 1] as number) - MEAN_G) / STD_G;
+        data[2 * plane + i] = ((pixels[offset + 2] as number) - MEAN_B) / STD_B;
     }
 
     return {
@@ -51,53 +52,45 @@ export async function sourceToEncoderInput(
         origSize: [origW, origH],
         resizedSize: [resizedW, resizedH],
     };
-}
+};
 
-async function loadAsBitmap(
+const loadAsBitmap = async (
     source: string | HTMLImageElement | HTMLCanvasElement,
-): Promise<ImageBitmap | HTMLImageElement | HTMLCanvasElement> {
+): Promise<ImageBitmap | HTMLImageElement | HTMLCanvasElement> => {
     if (typeof source === 'string') {
         const img = new Image();
         img.crossOrigin = 'anonymous';
+
         await new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
             img.onerror = () => reject(new Error(`Failed to load image: ${source}`));
             img.src = source;
         });
-        if (typeof createImageBitmap === 'function') {
-            return await createImageBitmap(img);
-        }
+
+        if (typeof createImageBitmap === 'function') return await createImageBitmap(img);
+
         return img;
     }
-    return source;
-}
 
-function createCanvas(width: number, height: number): HTMLCanvasElement | OffscreenCanvas {
-    if (typeof OffscreenCanvas !== 'undefined') {
-        return new OffscreenCanvas(width, height);
-    }
-    const c = document.createElement('canvas');
-    c.width = width;
-    c.height = height;
-    return c;
-}
+    return source;
+};
 
 /**
  * Map an image-space point to the 1024-padded input space SAM's decoder expects.
  *
  * Returns `[x, y]` in pixels within the 1024×1024 input tensor frame.
  */
-export function imagePointToInputSpace(
+export const imagePointToInputSpace = (
     imageX: number,
     imageY: number,
     origSize: readonly [number, number],
     resizedSize: readonly [number, number],
-): [number, number] {
+): [number, number] => {
     const [origW, origH] = origSize;
     const [rW, rH] = resizedSize;
     const x = (imageX / origW) * rW;
     const y = (imageY / origH) * rH;
     return [x, y];
-}
+};
 
 export { SAM_INPUT_SIZE };

@@ -27,21 +27,22 @@ type Embedding = {
     resizedSize: [number, number];
 };
 
-export function createSamEngine(config: SamConfig): SamEngine {
+export const createSamEngine = (config: SamConfig): SamEngine => {
     let sessionsPromise: Promise<SamSessions> | undefined;
     let embedding: Embedding | undefined;
     let embeddingKey: string | HTMLImageElement | HTMLCanvasElement | undefined;
 
-    async function getSessions(signal?: AbortSignal): Promise<SamSessions> {
+    const getSessions = async (signal?: AbortSignal): Promise<SamSessions> => {
         if (!sessionsPromise) sessionsPromise = loadSessions(config, signal);
         return sessionsPromise;
-    }
+    };
 
-    async function ensureEmbedding(
+    const ensureEmbedding = async (
         source: string | HTMLImageElement | HTMLCanvasElement,
         signal?: AbortSignal,
-    ): Promise<Embedding> {
+    ): Promise<Embedding> => {
         if (embedding && embeddingKey === source) return embedding;
+
         const sessions = await getSessions(signal);
         const ort = await import('onnxruntime-web');
         const pre = await sourceToEncoderInput(source);
@@ -54,11 +55,13 @@ export function createSamEngine(config: SamConfig): SamEngine {
             'last_hidden_state',
             'image_features',
         ]);
+
         if (!image_embeddings) {
             throw new Error(
                 `SAM encoder did not return an image_embeddings tensor. Got outputs: ${Object.keys(encoderOutput).join(', ')}`,
             );
         }
+
         const image_positional_embeddings = findTensor(encoderOutput, [
             'image_positional_embeddings',
             'pe_layer',
@@ -69,19 +72,20 @@ export function createSamEngine(config: SamConfig): SamEngine {
             origSize: pre.origSize,
             resizedSize: pre.resizedSize,
         };
-        if (image_positional_embeddings) {
+
+        if (image_positional_embeddings)
             next.image_positional_embeddings = image_positional_embeddings;
-        }
+
         embedding = next;
         embeddingKey = source;
         return embedding;
-    }
+    };
 
     return {
-        async prepare(source, signal) {
+        prepare: async (source, signal) => {
             await ensureEmbedding(source, signal);
         },
-        async detect(source, point, targetWidth, targetHeight, signal) {
+        detect: async (source, point, targetWidth, targetHeight, signal) => {
             const sessions = await getSessions(signal);
             const emb = await ensureEmbedding(source, signal);
             const ort = await import('onnxruntime-web');
@@ -98,6 +102,7 @@ export function createSamEngine(config: SamConfig): SamEngine {
                 Float32Array.from([inputX, inputY]),
                 [1, 1, 1, 2],
             );
+
             const input_labels = new ort.Tensor('int64', BigInt64Array.from([1n]), [1, 1, 1]);
 
             const decoderInputs: Record<string, Tensor> = {
@@ -105,6 +110,7 @@ export function createSamEngine(config: SamConfig): SamEngine {
                 input_points,
                 input_labels,
             };
+
             if (emb.image_positional_embeddings) {
                 decoderInputs.image_positional_embeddings = emb.image_positional_embeddings;
             }
@@ -116,9 +122,9 @@ export function createSamEngine(config: SamConfig): SamEngine {
             }
 
             const decoderOutput = await sessions.decoder.run(filtered);
-
             const iouTensor = findTensor(decoderOutput, ['iou_scores', 'iou_predictions']);
             const masksTensor = findTensor(decoderOutput, ['pred_masks', 'masks', 'low_res_masks']);
+
             if (!iouTensor || !masksTensor) {
                 throw new Error(
                     `SAM decoder returned unexpected outputs: ${Object.keys(decoderOutput).join(', ')}`,
@@ -155,27 +161,28 @@ export function createSamEngine(config: SamConfig): SamEngine {
                 mask,
             };
         },
-        invalidate() {
+        invalidate: () => {
             embedding = undefined;
             embeddingKey = undefined;
         },
-        dispose() {
+        dispose: () => {
             embedding = undefined;
             embeddingKey = undefined;
             sessionsPromise = undefined;
         },
     };
-}
+};
 
-function findTensor(
+const findTensor = (
     output: Record<string, Tensor>,
     candidateNames: readonly string[],
-): Tensor | undefined {
+): Tensor | undefined => {
     for (const name of candidateNames) {
         const tensor = output[name];
         if (tensor) return tensor;
     }
+
     return undefined;
-}
+};
 
 export { clearSamCache } from './session';

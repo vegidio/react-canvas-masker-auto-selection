@@ -14,13 +14,17 @@ const CACHE_NAME = 'rcm-auto-selection-sam-v1';
 
 let wasmPathsSet = false;
 
-export async function loadSessions(config: SamConfig, signal?: AbortSignal): Promise<SamSessions> {
+export const loadSessions = async (
+    config: SamConfig,
+    signal?: AbortSignal,
+): Promise<SamSessions> => {
     let ort: typeof import('onnxruntime-web');
+
     try {
         ort = await import('onnxruntime-web');
     } catch (cause) {
         throw new Error(
-            'react-canvas-masker-auto-selection: install `onnxruntime-web@^1.24.3` to use SAM auto-selection.',
+            'react-canvas-masker-auto-selection: install `onnxruntime-web` to use SAM auto-selection.',
             { cause: cause instanceof Error ? cause : undefined },
         );
     }
@@ -43,18 +47,20 @@ export async function loadSessions(config: SamConfig, signal?: AbortSignal): Pro
         ort.InferenceSession.create(decoderBuf, sessionOptions),
     ]);
 
-    console.info(
-        '[rcm-auto-selection] SAM encoder inputs:',
-        JSON.stringify(encoder.inputNames),
-        'outputs:',
-        JSON.stringify(encoder.outputNames),
-    );
-    console.info(
-        '[rcm-auto-selection] SAM decoder inputs:',
-        JSON.stringify(decoder.inputNames),
-        'outputs:',
-        JSON.stringify(decoder.outputNames),
-    );
+    if (config.debug) {
+        console.info(
+            '[rcm-auto-selection] SAM encoder inputs:',
+            JSON.stringify(encoder.inputNames),
+            'outputs:',
+            JSON.stringify(encoder.outputNames),
+        );
+        console.info(
+            '[rcm-auto-selection] SAM decoder inputs:',
+            JSON.stringify(decoder.inputNames),
+            'outputs:',
+            JSON.stringify(decoder.outputNames),
+        );
+    }
 
     return {
         encoder,
@@ -64,21 +70,24 @@ export async function loadSessions(config: SamConfig, signal?: AbortSignal): Pro
         decoderInputNames: decoder.inputNames,
         decoderOutputNames: decoder.outputNames,
     };
-}
+};
 
-async function fetchOnnx(url: string, signal?: AbortSignal): Promise<ArrayBuffer> {
+const fetchOnnx = async (url: string, signal?: AbortSignal): Promise<ArrayBuffer> => {
     const hasCaches = typeof caches !== 'undefined';
+
     if (hasCaches) {
         try {
             const cache = await caches.open(CACHE_NAME);
             const cached = await cache.match(url);
             if (cached) return await cached.arrayBuffer();
+
             const response = await fetch(url, signal ? { signal } : undefined);
             if (!response.ok) {
                 throw new Error(
                     `SAM model fetch failed: ${response.status} ${response.statusText} ${url}`,
                 );
             }
+
             await cache.put(url, response.clone());
             return await response.arrayBuffer();
         } catch (err) {
@@ -89,14 +98,16 @@ async function fetchOnnx(url: string, signal?: AbortSignal): Promise<ArrayBuffer
         url,
         signal ? { signal, cache: 'force-cache' } : { cache: 'force-cache' },
     );
+
     if (!response.ok) {
         throw new Error(`SAM model fetch failed: ${response.status} ${response.statusText} ${url}`);
     }
+
     return await response.arrayBuffer();
-}
+};
 
 /** Clears the persistent model cache. Useful for dev tooling. */
-export async function clearSamCache(): Promise<void> {
+export const clearSamCache = async (): Promise<void> => {
     if (typeof caches === 'undefined') return;
     await caches.delete(CACHE_NAME);
-}
+};
