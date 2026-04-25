@@ -1,10 +1,10 @@
 import type { CSSProperties, JSX, MouseEvent } from 'react';
 import type { AutoSelectionOverlayDriverProps } from '../types';
 
-export interface AutoSelectionOverlayProps extends AutoSelectionOverlayDriverProps {
-  className?: string;
-  style?: CSSProperties;
-}
+export type AutoSelectionOverlayProps = AutoSelectionOverlayDriverProps & {
+    className?: string;
+    style?: CSSProperties;
+};
 
 /**
  * Renders a transparent layer that sits on top of `MaskEditor`.
@@ -19,34 +19,34 @@ export interface AutoSelectionOverlayProps extends AutoSelectionOverlayDriverPro
  * `MaskEditor`'s rendered area so the click coordinates line up with the image.
  */
 export function AutoSelectionOverlay({
-  active,
-  isDetecting,
-  onPick,
-  className,
-  style,
+    active,
+    isDetecting,
+    onPick,
+    className,
+    style,
 }: AutoSelectionOverlayProps): JSX.Element {
-  const handleClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (!active || isDetecting) return;
-    onPick({ clientX: event.clientX, clientY: event.clientY });
-  };
+    const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+        if (!active || isDetecting) return;
+        onPick({ clientX: event.clientX, clientY: event.clientY });
+    };
 
-  return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: spatial click on an image canvas has no meaningful keyboard equivalent; keyboard affordances belong on a sibling control.
-    // biome-ignore lint/a11y/noStaticElementInteractions: same reason — this is a transparent click-capture layer, not a semantic widget.
-    <div
-      data-testid="auto-selection-overlay"
-      data-active={active}
-      data-detecting={isDetecting}
-      onClick={handleClick}
-      className={className}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        cursor: active ? (isDetecting ? 'wait' : 'crosshair') : 'default',
-        pointerEvents: active ? 'auto' : 'none',
-        background: active && isDetecting ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
-        ...style,
-      }}
-    />
-  );
+    return (
+        // biome-ignore lint/a11y/useKeyWithClickEvents: spatial click on an image canvas has no meaningful keyboard equivalent; keyboard affordances belong on a sibling control.
+        // biome-ignore lint/a11y/noStaticElementInteractions: same reason — this is a transparent click-capture layer, not a semantic widget.
+        <div
+            data-testid="auto-selection-overlay"
+            data-active={active}
+            data-detecting={isDetecting}
+            onClick={handleClick}
+            className={className}
+            style={{
+                position: 'absolute',
+                inset: 0,
+                cursor: active ? (isDetecting ? 'wait' : 'crosshair') : 'default',
+                pointerEvents: active ? 'auto' : 'none',
+                background: active && isDetecting ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+                ...style,
+            }}
+        />
+    );
 }
