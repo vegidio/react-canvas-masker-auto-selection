@@ -2,6 +2,8 @@
 
 A plugin for [`react-canvas-masker`](https://github.com/3rChuss/react-canvas-masker) that adds an **auto selection** mode when creating masks — one click on the image and the silhouette of the object under the cursor is written to the mask canvas.
 
+You can see how it works in the [playground](https://vegidio.github.io/react-canvas-masker-auto-selection/).
+
 ## 💡 Motivation
 
 [`react-canvas-masker`](https://github.com/3rChuss/react-canvas-masker) is a great library for painting binary masks over an image, but it only supports **freehand** painting. When the thing you actually want to mask is a person, a car, a pet, or any other complex shape, dragging the brush around its outline can be slow, imprecise, and tiring — especially on touch devices.
